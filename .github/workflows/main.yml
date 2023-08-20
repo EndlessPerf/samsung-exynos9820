@@ -55,7 +55,7 @@ jobs:
           set -e -o pipefail
           ./cruelbuild config                    \
                        model=${{ matrix.model }} \
-                       name="Cruel-devel"        \
+                       name="Endless-Kernel"        \
                        toolchain=$TOOLCHAIN      \
                        +magisk                   \
                        +nohardening              \
@@ -64,9 +64,10 @@ jobs:
                        +cifs                     \
                        +sdfat                    \
                        +ntfs                     \
-                       +force_dex_wqhd           \
-                       +morosound                \
+                       -force_dex_wqhd           \
+                       -morosound                \
                        +boeffla_wl_blocker       \
+                       +nohardening2             \
           2>&1 | tee config.info
 
       - name: Install gcc-aarch64-linux-gnu
