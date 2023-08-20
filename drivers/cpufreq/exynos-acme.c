@@ -993,8 +993,8 @@ __ATTR(freqvar_idlelatency, S_IRUGO | S_IWUSR,
 /*********************************************************************
  *                  INITIALIZE EXYNOS CPUFREQ DRIVER                 *
  *********************************************************************/
-static int cpu_undervolt = 35000;
- 
+static int cpu_undervolt = 25000;
+
 static void print_domain_info(struct exynos_cpufreq_domain *domain)
 {
 	int i;
@@ -1090,7 +1090,7 @@ static __init int init_table(struct exynos_cpufreq_domain *domain)
 
 	for (index = 0; index < domain->table_size; index++) {
 		domain->freq_table[index].driver_data = index;
-		
+
 		/* Undervolt with uV value */
 		volt_table[index] -= cpu_undervolt;
 
@@ -1335,7 +1335,7 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 	return register_exynos_dm_freq_scaler(domain->dm_type, dm_scaler);
 }
 
-static unsigned long arg_cpu_min_cl0 = 130000;
+static unsigned long arg_cpu_min_cl0 = 120000; /* min cpu freq 132MHz */
 
 static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 {
@@ -1352,7 +1352,7 @@ static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 }
 __setup("cpu_min_cl0=", cpufreq_read_cpu_min_cl0);
 
-unsigned long arg_cpu_min_cl1 = 377000;
+unsigned long arg_cpu_min_cl1 = 370000;  /* min cpu freq 377MHz */
 
 static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 {
@@ -1367,9 +1367,29 @@ static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 	printk("cpu_min_cl1=%lu\n", arg_cpu_min_cl1);
 	return ret;
 }
+
 __setup("cpu_min_cl1=", cpufreq_read_cpu_min_cl1);
 
-static unsigned long arg_cpu_max_cl0 = 2106000;
+/*Underclocking prime cores to 350 MHz*/
+unsigned long arg_cpu_min_cl2 = 450000; 
+
+static __init int cpufreq_read_cpu_min_cl2(char *cpu_min_cl2)
+{
+	unsigned long ui_khz;
+	int ret;
+
+	ret = kstrtoul(cpu_min_cl2, 0, &ui_khz);
+	if (ret)
+		return -EINVAL;
+
+	arg_cpu_min_cl2 = ui_khz;
+	printk("cpu_min_cl2=%lu\n", arg_cpu_min_cl2);
+	return ret;
+}
+__setup("cpu_min_cl2=", cpufreq_read_cpu_min_cl2);
+
+
+static unsigned long arg_cpu_max_cl0 = 2106000; /* max cpu freq 2116MHz */
 
 static int __init cpufreq_read_cpu_max_cl0(char *cpu_max_cl0)
 {
@@ -1386,9 +1406,10 @@ static int __init cpufreq_read_cpu_max_cl0(char *cpu_max_cl0)
 }
 __setup("cpu_max_cl0=", cpufreq_read_cpu_max_cl0);
 
-unsigned long arg_cpu_max_cl1 = 2400000;
+/*Overclocking perf cores to 2600 MHz*/
+unsigned long arg_cpu_max_cl1 = 2600000; /*max_cpu_freq=2600 MHz*/
 
-static int __init cpufreq_read_cpu_max_cl1(char *cpu_max_cl1)
+static __init int cpufreq_read_cpu_max_cl1(char *cpu_max_cl1)
 {
 	unsigned long ui_khz;
 	int ret;
@@ -1403,7 +1424,7 @@ static int __init cpufreq_read_cpu_max_cl1(char *cpu_max_cl1)
 }
 __setup("cpu_max_cl1=", cpufreq_read_cpu_max_cl1);
 
-unsigned long arg_cpu_max_cl2 = 2912000;
+unsigned long arg_cpu_max_cl2 = 3016000;
 
 static __init int init_domain(struct exynos_cpufreq_domain *domain,
 					struct device_node *dn)
@@ -1427,8 +1448,8 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 		domain->max_freq = min(domain->max_freq, val);
 	if (!of_property_read_u32(dn, "min-freq", &val))
 		domain->min_freq = max(domain->min_freq, val);
-		
-		if (domain->id == 0) {
+
+	if (domain->id == 0) {
 		domain->max_freq = arg_cpu_max_cl0;
 		domain->min_freq = arg_cpu_min_cl0;
 	} else if (domain->id == 1) {
@@ -1436,6 +1457,7 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 		domain->min_freq = arg_cpu_min_cl1;
 	} else if (domain->id == 2) {
 		domain->max_freq = arg_cpu_max_cl2;
+                domain->min_freq = arg_cpu_min_cl2;
 	}
 
 	/* If this domain has boost freq, change max */
@@ -1445,6 +1467,10 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	if (of_property_read_bool(dn, "need-awake"))
 		domain->need_awake = true;
+
+	/* Default QoS for user */
+	if (!of_property_read_u32(dn, "user-default-qos", &val))
+		domain->user_default_qos = val;
 
 	domain->boot_freq = cal_dfs_get_boot_freq(domain->cal_id);
 	domain->resume_freq = cal_dfs_get_resume_freq(domain->cal_id);
