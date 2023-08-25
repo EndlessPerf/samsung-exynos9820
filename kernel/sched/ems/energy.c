@@ -135,6 +135,12 @@ unsigned int calculate_energy(struct task_struct *p, int target_cpu)
 		for_each_cpu(i, cpu_coregroup_mask(cpu))
 			if (util[i] > max_util)
 				max_util = util[i];
+				
+				/*
+		 * Account utilization tipping point, normally for schedutil
+		 * frequency calculation
+		 */
+		max_util += max_util >> 2;
 
 		/*
 		 * 2. Find the capacity according to biggest utilization in
