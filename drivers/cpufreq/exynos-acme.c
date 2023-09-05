@@ -317,7 +317,7 @@ static int update_freq(struct exynos_cpufreq_domain *domain,
 		return 0;
 	}
 
-	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_L);
+	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_H);
 	cpufreq_cpu_put(policy);
 
 	return ret;
@@ -993,7 +993,7 @@ __ATTR(freqvar_idlelatency, S_IRUGO | S_IWUSR,
 /*********************************************************************
  *                  INITIALIZE EXYNOS CPUFREQ DRIVER                 *
  *********************************************************************/
-static int cpu_undervolt = 35000;
+static int cpu_undervolt = 25000;
 
 static void print_domain_info(struct exynos_cpufreq_domain *domain)
 {
@@ -1440,13 +1440,12 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 
 	/*
 	 * If max-freq property exists in device tree, max frequency is
-	* selected to the value defined in device tree (ignoring ECT limit)
+	 * selected to the value defined in device tree (ignoring ECT limit)
 	 * In case of min-freq, min frequency is selected
 	 * to bigger one.
 	 */
 	if (!of_property_read_u32(dn, "max-freq", &val))
 		domain->max_freq = val;
-
 	if (!of_property_read_u32(dn, "min-freq", &val))
 		domain->min_freq = max(domain->min_freq, val);
 
