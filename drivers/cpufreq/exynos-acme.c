@@ -317,7 +317,7 @@ static int update_freq(struct exynos_cpufreq_domain *domain,
 		return 0;
 	}
 
-	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_H);
+	ret = cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_L);  // default H
 	cpufreq_cpu_put(policy);
 
 	return ret;
@@ -1335,7 +1335,7 @@ static int init_dm(struct exynos_cpufreq_domain *domain,
 	return register_exynos_dm_freq_scaler(domain->dm_type, dm_scaler);
 }
 
-static unsigned long arg_cpu_min_cl0 = 132000; /* min cpu freq 132MHz */
+static unsigned long arg_cpu_min_cl0 = 120000; /* min cpu freq 120MHz */
 
 static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 {
@@ -1352,7 +1352,7 @@ static int __init cpufreq_read_cpu_min_cl0(char *cpu_min_cl0)
 }
 __setup("cpu_min_cl0=", cpufreq_read_cpu_min_cl0);
 
-unsigned long arg_cpu_min_cl1 = 377000;  /* min cpu freq 377MHz */
+unsigned long arg_cpu_min_cl1 = 370000;  /* min cpu freq 377MHz */
 
 static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 {
@@ -1370,7 +1370,7 @@ static int __init cpufreq_read_cpu_min_cl1(char *cpu_min_cl1)
 
 __setup("cpu_min_cl1=", cpufreq_read_cpu_min_cl1);
 
-/*Underclocking prime cores to 350 MHz*/
+/*Underclocking prime cores to 350MHz*/
 unsigned long arg_cpu_min_cl2 = 350000; 
 
 static __init int cpufreq_read_cpu_min_cl2(char *cpu_min_cl2)
@@ -1389,7 +1389,7 @@ static __init int cpufreq_read_cpu_min_cl2(char *cpu_min_cl2)
 __setup("cpu_min_cl2=", cpufreq_read_cpu_min_cl2);
 
 
-static unsigned long arg_cpu_max_cl0 = 2116000; /* max cpu freq 2116MHz */
+static unsigned long arg_cpu_max_cl0 = 2106000; /* max cpu freq 2106MHz */
 
 static int __init cpufreq_read_cpu_max_cl0(char *cpu_max_cl0)
 {
@@ -1445,7 +1445,9 @@ static __init int init_domain(struct exynos_cpufreq_domain *domain,
 	 * to bigger one.
 	 */
 	if (!of_property_read_u32(dn, "max-freq", &val))
+
 		domain->max_freq = val;
+
 	if (!of_property_read_u32(dn, "min-freq", &val))
 		domain->min_freq = max(domain->min_freq, val);
 
