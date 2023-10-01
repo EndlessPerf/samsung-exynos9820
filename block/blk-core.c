@@ -366,7 +366,7 @@ int blk_alloc_turbo_write(struct request_queue *q)
 
 	set_tw_state(new, TW_OFF);
 
-	new->up_threshold_bytes = (12 * 1024 * 1024);
+	new->up_threshold_bytes = (2 * 1024 * 1024);
 	new->up_threshold_rqs = 50;
 	new->down_threshold_bytes = (10 * 1024 * 1024);
 	new->down_threshold_rqs= 40;
@@ -4128,7 +4128,8 @@ int __init blk_dev_init(void)
 
 	/* used for unplugging and affects IO latency/throughput - HIGHPRI */
 	kblockd_workqueue = alloc_workqueue("kblockd",
-					    WQ_MEM_RECLAIM | WQ_HIGHPRI, 0);
+					    WQ_MEM_RECLAIM | WQ_HIGHPRI |
+					    WQ_POWER_EFFICIENT, 0);
 	if (!kblockd_workqueue)
 		panic("Failed to create kblockd\n");
 
